@@ -31,5 +31,5 @@ p.done()
 ```
 
 # Requirements
-Python 3
-numpy (only reccomended)
+- Python 3
+- numpy (only reccomended)
