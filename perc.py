@@ -91,6 +91,7 @@ class Perc:
     def _printdone(self):
         if self._inline:
             print('\r', end='')
+            sys.stdout.write('\033[2K\033[1G')
         print('Done in %s at %s' % (self.tomins(time.time() - self._times[0]), datetime.now().strftime("%H:%M:%S")))
 
     def done(self):
