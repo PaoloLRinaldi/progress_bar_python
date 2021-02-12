@@ -1,8 +1,14 @@
 from datetime import datetime, timedelta
 import time
 import sys
-if 'numpy' in sys.modules:
-	import numpy as np
+
+try:
+    import numpy as np
+
+    has_numpy = True
+except ImportError:
+    has_numpy = False
+
 
 class Perc:
     def __init__(self, vmax, verbose=3, inline=True, showbar=True, disable=False, title=None):
@@ -24,7 +30,6 @@ class Perc:
         self._title = title
         self._starttime = datetime.now()
 
-
     def __new__(cls, *args, **kwargs):
         return super(Perc, cls).__new__(cls)
 
@@ -42,23 +47,23 @@ class Perc:
         if secs < 10:
             return strhours + '{}:0{}'.format(mins, secs)
         return strhours + '{}:{}'.format(mins, secs)
-    
-    def next(self, it = None):
+
+    def next(self, it=None):
         if self._disable:
             return
-        if it != None:
+        if it is not None:
             self._it = it
         self._it += 1
         current_perc = self._it * 100 // self._vmax
         if current_perc != self._perc:
             if self._inline:
                 print('\r', end='')
-            if self._title != None:
+            if self._title is not None:
                 print(self._title, end=' ')
             if self._showbar:
                 prog = int((self._it / self._vmax) * self._progsz)
                 print('[' + '=' * prog, end='')
-                if (prog != self._progsz):
+                if prog != self._progsz:
                     print('>' + '.' * (self._progsz - prog - 1), end='')
                 print('] ', end='')
             print('{}%'.format(current_perc), end='')
@@ -72,13 +77,16 @@ class Perc:
                     if self._verbose > 1:
                         elps = self._times[-1] - self._times[0]
                         print(' | %s' % (self.tomins(elps)), end='')
-                        if self._verbose > 2 and current_perc != 100 and 'numpy' in sys.modules:
-                            p = np.poly1d(np.polyfit(self._passedits, self._times[1:], w=np.arange(1, len(self._times)), deg=1))
+                        if self._verbose > 2 and current_perc != 100 and has_numpy:
+                            p = np.poly1d(
+                                np.polyfit(self._passedits, self._times[1:], w=np.arange(1, len(self._times)), deg=1))
                             secs_remaining = p(self._vmax) - p(self._it)
-                            print('<%s => %s' % (self.tomins(secs_remaining), self.tomins(secs_remaining + elps)), end='')
+                            print('<%s => %s' % (self.tomins(secs_remaining), self.tomins(secs_remaining + elps)),
+                                  end='')
                             if self._verbose > 3:
                                 endtime = self._starttime + timedelta(seconds=elps + secs_remaining)
-                                print(' | Started: %s - Ends at: %s' % (self._starttime.strftime("%H:%M:%S"), endtime.strftime("%H:%M:%S")), end='')
+                                print(' | Started: %s - Ends at: %s' % (
+                                    self._starttime.strftime("%H:%M:%S"), endtime.strftime("%H:%M:%S")), end='')
                                 if self._verbose > 4:
                                     nxt = p(int(round((current_perc + 1) * self._vmax / 100 - 0.5) + 1)) - p(self._it)
                                     print(' | Next in %.1f/%s' % (nxt, self.tomins(nxt)), end='')
@@ -87,7 +95,7 @@ class Perc:
             if self._it == self._vmax:
                 self._printdone()
             self._perc = current_perc
-    
+
     def _printdone(self):
         if self._inline:
             print('\r', end='')
@@ -95,9 +103,9 @@ class Perc:
         print('Done in %s at %s' % (self.tomins(time.time() - self._times[0]), datetime.now().strftime("%H:%M:%S")))
 
     def done(self):
-        if self._it != self._vmax and not disable:
+        if self._it != self._vmax and not self._disable:
             self._printdone()
-    
+
     def __iter__(self):
         return self
 
@@ -110,3 +118,10 @@ class Perc:
             return next(self._tomanage)
         else:
             raise StopIteration
+
+
+if __name__ == "__main__":
+    for i in Perc(range(100), verbose=1):
+        time.sleep(0.1)
+
+    Perc(3).done()
