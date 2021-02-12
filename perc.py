@@ -123,5 +123,3 @@ class Perc:
 if __name__ == "__main__":
     for i in Perc(range(100), verbose=1):
         time.sleep(0.1)
-
-    Perc(3).done()
