@@ -4,15 +4,13 @@ import sys
 
 try:
     import numpy as np
-
-    has_numpy = True
 except ImportError:
-    has_numpy = False
+    np = None
 
 
 class Perc:
     def __init__(self, vmax, verbose=3, inline=True, showbar=True, disable=False, title=None):
-        if type(vmax) == int:
+        if isinstance(vmax, int):
             self._vmax = vmax
             self._it = 0
         else:
@@ -25,7 +23,7 @@ class Perc:
         self._inline = inline
         self._showbar = showbar
         self._progsz = 20
-        self._passedits = []
+        self._passedits = list()
         self._disable = disable
         self._title = title
         self._starttime = datetime.now()
@@ -41,7 +39,7 @@ class Perc:
         if mins >= 60:
             hours = mins // 60
             mins = mins % 60
-            mins = str(0) + str(mins) if mins < 10 else str(mins)
+            mins = "{:02d}".format(mins)
             strhours = str(hours) + ':'
 
         if secs < 10:
@@ -77,7 +75,7 @@ class Perc:
                     if self._verbose > 1:
                         elps = self._times[-1] - self._times[0]
                         print(' | %s' % (self.tomins(elps)), end='')
-                        if self._verbose > 2 and current_perc != 100 and has_numpy:
+                        if self._verbose > 2 and current_perc != 100 and np:
                             p = np.poly1d(
                                 np.polyfit(self._passedits, self._times[1:], w=np.arange(1, len(self._times)), deg=1))
                             secs_remaining = p(self._vmax) - p(self._it)
